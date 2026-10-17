@@ -1,0 +1,17 @@
+# build outputs
+build/
+bin/
+out/
+cmake-build-*/
+
+# editor cruft
+.vs/
+.vscode/
+.idea/
+*.user
+x64/
+Debug/
+Release/
+
+# algo1 runtime state
+.algo1/

@@ -1,0 +1,171 @@
+# GRAPH.md — The dependency graph, visually
+
+Same content as [`ALGORITHM.md`](ALGORITHM.md), but drawn.
+The demo project used everywhere below is
+[`samples/demo_app`](../samples/demo_app).
+
+## The project as Mermaid
+
+```mermaid
+graph TD
+    user_model.h --> user_model.cpp
+    user_model.h --> home.cpp
+    user_model.h --> user_model.h2["(user_model.cpp)"]
+    settings.h --> main.cpp
+    settings.h --> settings.cpp
+    config.h --> settings.cpp
+    config.h --> config.cpp
+    home.h --> home.cpp
+    home.h --> main.cpp
+```
+
+Normalized (self-loops removed):
+
+```mermaid
+graph TD
+    user_model.h -->|included by| user_model.cpp
+    user_model.h -->|included by| home.cpp
+    config.h -->|included by| settings.h
+    config.h -->|included by| config.cpp
+    settings.h -->|included by| main.cpp
+    settings.h -->|included by| settings.cpp
+    home.h -->|included by| home.cpp
+    home.h -->|included by| main.cpp
+```
+
+**Edge reading rule**: `a ─▶ b` means *b `#include`s a* ⇒ *if a changes, b may
+need a rebuild*. This direction is what `algo1 status` uses.
+
+## ASCII form (same graph)
+
+```
+  config.h ──▶ settings.h ──▶ main.cpp
+  config.h ──▶ config.cpp
+  config.h ──▶ settings.cpp
+  settings.h ──▶ settings.cpp
+  home.h ──▶ home.cpp
+  home.h ──▶ main.cpp
+  user_model.h ──▶ home.cpp
+  user_model.h ──▶ user_model.cpp
+```
+
+Chained dependencies (the long one):
+```
+config.h ──▶ settings.h ──▶ main.cpp
+```
+Two hops: editing `config.h` reaches both `settings.h` (direct) **and**
+`main.cpp` (transitive, through `settings.h`) — that is BFS at work.
+
+## What the tool prints
+
+`algo1 what-if user_model.h`:
+
+```
+what-if: changing 'user_model.h' requires rebuilding 3 file(s)
+order: user_model.h -> home.cpp -> user_model.cpp
+user_model.h  <= changed
+├── home.cpp *affected*
+└── user_model.cpp *affected*
+```
+
+Note `main.cpp` is *not* on this list: `main.cpp` includes `home.h`, not
+`user_model.h`. The graph is honest instead of paranoid.
+
+`algo1 what-if user_model.h config.h` (run on `config.h`):
+also `main.cpp` is pulled in via the `config.h → settings.h → main.cpp`
+chain — BFS depth 2 — and the tree renderer draws it nested:
+
+```
+config.h  <= changed
+├──  config.cpp *affected*
+├──  settings.cpp *affected*
+└──  settings.h *affected*
+    ├──  main.cpp *affected*
+    └──  settings.cpp (shared node — shown above)
+```
+
+* Shared nodes print `(shared node — shown above)` instead of a duplicate
+  subtree — bounded rendering on DAGs.
+* If two files ever include each other, an explicit cycle warning appears
+  and the offending set is listed under `[!] cyclic` in `status` output.
+
+## How BFS walks the graph, step by step
+
+Input: `changed = [user_model.h]`
+
+```
+frontier = [user_model.h]                      affected = {user_model.h}
+
+step 1: pop user_model.h
+        dependents = [user_model.cpp, home.cpp]
+        both unseen -> add                      affected = {user_model.h,
+                                                             user_model.cpp,
+                                                             home.cpp}
+        frontier = [home.cpp, user_model.cpp]
+
+step 2: pop home.cpp
+        dependents = []  (nothing includes home.cpp)
+step 3: pop user_model.cpp
+        dependents = []
+frontier empty -> stop
+```
+
+Result: `{user_model.h, user_model.cpp, home.cpp}` — exactly what the CLI
+prints.
+
+## How Kahn orders those 3 files
+
+Edges inside the affected set: `user_model.h → user_model.cpp` and
+`user_model.h → home.cpp`.
+
+```
+indegree before:   user_model.h = 0   user_model.cpp = 1   home.cpp = 1
+
+ready (0-indegree, min-name first) = [user_model.h]
+
+emit user_model.h  ->  both dependents drop to 0  ->  push home.cpp,
+                                                      user_model.cpp
+
+emit home.cpp (alphabetical tie-break)
+emit user_model.cpp
+
+sequence = [user_model.h, home.cpp, user_model.cpp]
+```
+
+Deterministic: alphabetical tie-breaking. Run it twice, snapshot diff empty.
+For pipelines and IDEs this is the property you actually want from "just
+give me an order".
+
+## Terminal UX
+
+The interactive menu (`algo1` with no command) re-runs this machinery under
+arrow keys:
+
+* **↑/↓ (or j/k)** — move the selection through the files
+* **Enter** — commit the selection
+* **1..4** — scan / status / what-if / init
+* **q / Esc** — leave
+
+Colors: nodes on the affected set print in red with a `*affected*` marker,
+the root keeps a `<= changed` badge, hints print dim. Every ANSI escape is
+instantiated once inside a `while(true)` render loop, so the screen always
+reflects the model rather than an old frame.
+
+## Embedding the graph
+
+```text
+$ algo1 scan samples/demo_app
+root: samples/demo_app
+files discovered: 9
+edges: 9
+
+dependency edges (a -> who depends on a):
+config.h                 -> config.cpp settings.cpp settings.h
+home.h                   -> home.cpp main.cpp
+settings.h               -> main.cpp settings.cpp
+user_model.h             -> home.cpp user_model.cpp
+```
+
+That block is the literal graph — copy it into your README, test fixture,
+or meeting notes. Nothing about the demo is special: point `algo1 scan` at
+any real codebase and you get its shape in one shot.
