@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace algo1 {
+namespace ripple {
 
 /// Command-line front end: argument parsing, the five sub-commands and
 /// the interactive menu. All screen/interaction logic lives here so the
@@ -11,7 +11,7 @@ class App {
 public:
     struct Options {
         std::string root = ".";         ///< project directory to analyze
-        std::string baseline = ".algo1/baseline.bin";  ///< state file
+        std::string baseline = ".ripple/baseline.bin";  ///< state file
         bool interactive = false;       ///< menu-driven mode flag
         bool colors = true;             ///< ANSI color enable/disable
     };
@@ -29,4 +29,4 @@ private:
     static int printUsage();
 };
 
-}  // namespace algo1
+}  // namespace ripple

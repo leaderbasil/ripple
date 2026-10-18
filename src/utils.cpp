@@ -2,12 +2,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "algo1/utils.hpp"
+#include "ripple/utils.hpp"
 
 #include <cstdio>
 #include <filesystem>
 
-namespace algo1 {
+namespace ripple {
 
 bool readTextFile(const std::string& path, std::string& out) {
     std::FILE* f = std::fopen(path.c_str(), "rb");
@@ -21,6 +21,15 @@ bool readTextFile(const std::string& path, std::string& out) {
     }
     const bool ok = !std::ferror(f);
     std::fclose(f);
+
+    // Tolerate a UTF-8 BOM: it would otherwise corrupt the first line's
+    // `#`-at-line-start check and silently drop one dependency edge.
+    if (out.size() >= 3 &&
+        static_cast<unsigned char>(out[0]) == 0xEF &&
+        static_cast<unsigned char>(out[1]) == 0xBB &&
+        static_cast<unsigned char>(out[2]) == 0xBF) {
+        out.erase(0, 3);
+    }
     return ok;
 }
 
@@ -38,4 +47,4 @@ bool writeTextFile(const std::string& path, const std::string& content) {
     return ok && closed;
 }
 
-}  // namespace algo1
+}  // namespace ripple

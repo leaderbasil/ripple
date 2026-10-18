@@ -1,4 +1,4 @@
-#include "algo1/scanner.hpp"
+#include "ripple/scanner.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -7,11 +7,11 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "algo1/utils.hpp"
+#include "ripple/utils.hpp"
 
 namespace fs = std::filesystem;
 
-namespace algo1 {
+namespace ripple {
 
 bool isSourceExtension(const std::string& extension) {
     std::string e = extension;
@@ -33,7 +33,7 @@ std::vector<std::string> SourceScanner::discoverSources() const {
         if (!entry.is_regular_file()) continue;
         const auto& p = entry.path();
 
-        // Skip anything under a hidden directory (.git, .algo1, ...) and
+        // Skip anything under a hidden directory (.git, .ripple, ...) and
         // dot-files themselves. One bad path key would poison the baseline.
         bool hidden = false;
         for (const auto& part : p) {
@@ -136,4 +136,4 @@ ScanResult SourceScanner::scan() const {
     return out;
 }
 
-}  // namespace algo1
+}  // namespace ripple

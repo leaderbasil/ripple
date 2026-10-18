@@ -13,5 +13,5 @@ x64/
 Debug/
 Release/
 
-# algo1 runtime state
-.algo1/
+# ripple runtime state
+.ripple/

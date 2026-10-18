@@ -4,5 +4,5 @@ set -e
 cd "$(dirname "$0")/.."
 mkdir -p build
 c++ -std=c++17 -O2 -Wall -Wextra -Wpedantic -Iinclude \
-    src/*.cpp -o build/algo1
-echo "Built ./build/algo1"
+    src/*.cpp -o build/ripple
+echo "Built ./build/ripple"

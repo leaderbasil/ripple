@@ -1,4 +1,4 @@
-#include "algo1/app.hpp"
+#include "ripple/app.hpp"
 
 #include <algorithm>
 #include <cstdio>
@@ -6,19 +6,19 @@
 #include <string>
 #include <vector>
 
-#include "algo1/analyzer.hpp"
-#include "algo1/graph.hpp"
-#include "algo1/scanner.hpp"
-#include "algo1/tui.hpp"
+#include "ripple/analyzer.hpp"
+#include "ripple/graph.hpp"
+#include "ripple/scanner.hpp"
+#include "ripple/tui.hpp"
 
 namespace fs = std::filesystem;
 
-namespace tui = algo1::tui;
+namespace tui = ripple::tui;
 
-using algo1::Analyzer;
-using algo1::SourceScanner;
+using ripple::Analyzer;
+using ripple::SourceScanner;
 
-namespace algo1 {
+namespace ripple {
 
 namespace {
 
@@ -89,22 +89,22 @@ void cmdHowItWorks() {
 
 int App::printUsage() {
     std::printf(
-        "algo1 - the RIPPLE engine (incremental build impact analyzer)\n"
+        "ripple - the RIPPLE engine (incremental build impact analyzer)\n"
         "\n"
         "usage:\n"
-        "  algo1                          interactive menu (default dir '.')\n"
-        "  algo1 scan [dir]               discovery + edge overview\n"
-        "  algo1 status [dir]             compare vs baseline, print affected + order\n"
-        "  algo1 what-if [dir] [file]     simulated change impact (file may be picked)\n"
-        "  algo1 init [dir]               (re)capture baseline\n"
-        "  algo1 help                     this text\n"
+        "  ripple                          interactive menu (default dir '.')\n"
+        "  ripple scan [dir]               discovery + edge overview\n"
+        "  ripple status [dir]             compare vs baseline, print affected + order\n"
+        "  ripple what-if [dir] [file]     simulated change impact (file may be picked)\n"
+        "  ripple init [dir]               (re)capture baseline\n"
+        "  ripple help                     this text\n"
         "\n"
-        "state file: .algo1/baseline.bin inside [dir]\n"
+        "state file: .ripple/baseline.bin inside [dir]\n"
         "\n"
         "examples:\n"
-        "  algo1 samples/demo_app\n"
-        "  algo1 status samples/demo_app\n"
-        "  algo1 what-if samples/demo_app user_model.h\n");
+        "  ripple samples/demo_app\n"
+        "  ripple status samples/demo_app\n"
+        "  ripple what-if samples/demo_app user_model.h\n");
     return 0;
 }
 
@@ -141,7 +141,7 @@ int App::cmdStatus(Options& opt) {
     opt.baseline = baselinePath.string();
 
     if (!fs::exists(baselinePath)) {
-        std::printf("no baseline yet under '%s' - run: algo1 init %s\n",
+        std::printf("no baseline yet under '%s' - run: ripple init %s\n",
                     opt.root.c_str(), opt.root.c_str());
         return 2;
     }
@@ -207,13 +207,13 @@ int App::cmdMenu(Options& opt) {
     for (;;) {
         clearScreen();
 
-        std::printf("  R I P P L E   ·   incremental build impact\n");
+        std::printf("  R I P P L E   Â·   incremental build impact\n");
         std::printf("  root: %s\n", opt.root.c_str());
         std::printf("  -------------------------------------------\n");
         std::printf("  [1|s] scan       what the graph looks like\n");
         std::printf("  [2|d] status     what changed + minimal rebuild plan\n");
         std::printf("  [3|w] what-if    pick a file, simulate the edit\n");
-        std::printf("  [4|b] baseline   recapture (.algo1/baseline.bin)\n");
+        std::printf("  [4|b] baseline   recapture (.ripple/baseline.bin)\n");
         std::printf("  [5|h] how it works   the RIPPLE algorithm, 5 stages\n");
         std::printf("  [q|esc] quit\n");
         std::printf("  > ");
@@ -288,8 +288,8 @@ int App::run(int argc, char** argv) {
     if (command == "init") return cmdInit(opt);
     if (command == "what-if") return cmdWhatIf(opt, fileArg);
 
-    std::printf("unknown command '%s' - try 'algo1 help'\n", command.c_str());
+    std::printf("unknown command '%s' - try 'ripple help'\n", command.c_str());
     return 2;
 }
 
-}  // namespace algo1
+}  // namespace ripple

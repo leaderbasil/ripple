@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace algo1 {
+namespace ripple {
 
 /// Directed dependency graph between source files.
 ///
@@ -59,4 +59,4 @@ private:
     static const std::vector<std::string> kEmpty_;
 };
 
-}  // namespace algo1
+}  // namespace ripple

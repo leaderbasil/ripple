@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "algo1/graph.hpp"
+#include "ripple/graph.hpp"
 
-namespace algo1 {
+namespace ripple {
 
 struct ScanResult {
     std::vector<std::string> files;  ///< recognized sources, relative to root, sorted
@@ -32,4 +32,4 @@ private:
 /// True when `extension` (any case) is a recognized C/C++ source or header.
 bool isSourceExtension(const std::string& extension);
 
-}  // namespace algo1
+}  // namespace ripple

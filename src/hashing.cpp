@@ -2,13 +2,13 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "algo1/hashing.hpp"
+#include "ripple/hashing.hpp"
 
 #include <cstdio>
 #include <string>
 #include <string_view>
 
-namespace algo1 {
+namespace ripple {
 
 std::uint64_t fnv1a64(std::string_view data) {
     std::uint64_t h = 0xcbf29ce484222325ULL;
@@ -42,4 +42,4 @@ std::uint64_t hashFile(const std::string& path, bool* ok) {
     return readOk ? h : 0;
 }
 
-}  // namespace algo1
+}  // namespace ripple

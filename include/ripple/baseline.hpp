@@ -4,9 +4,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "algo1/graph.hpp"
+#include "ripple/graph.hpp"
 
-namespace algo1 {
+namespace ripple {
 
 /// One per tracked file. Compact: this struct is replayed/rewritten
 /// on every run, so it stays POD-like with a stable text encoding.
@@ -34,4 +34,4 @@ public:
     static void assign(BaselineData& target, BaselineData&& source);
 };
 
-}  // namespace algo1
+}  // namespace ripple

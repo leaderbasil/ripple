@@ -1,10 +1,10 @@
-#include "algo1/graph.hpp"
+#include "ripple/graph.hpp"
 
 #include <algorithm>
 #include <queue>
 #include <utility>
 
-namespace algo1 {
+namespace ripple {
 
 const std::vector<std::string> DependencyGraph::kEmpty_;
 
@@ -134,4 +134,4 @@ DependencyGraph::buildOrder(const std::unordered_set<std::string>& subset) const
     return out;
 }
 
-}  // namespace algo1
+}  // namespace ripple

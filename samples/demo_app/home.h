@@ -1,10 +1,10 @@
-#ifndef ALGO1_DEMO_HOME_H
-#define ALGO1_DEMO_HOME_H
+#ifndef RIPPLE_DEMO_HOME_H
+#define RIPPLE_DEMO_HOME_H
 
-namespace algo1_demo {
+namespace ripple_demo {
 
 int homeVisits(const int initial);
 
-}  // namespace algo1_demo
+}  // namespace ripple_demo
 
 #endif

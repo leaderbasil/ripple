@@ -1,9 +1,9 @@
-#ifndef ALGO1_DEMO_USER_MODEL_H
-#define ALGO1_DEMO_USER_MODEL_H
+#ifndef RIPPLE_DEMO_USER_MODEL_H
+#define RIPPLE_DEMO_USER_MODEL_H
 
 #include <string>
 
-namespace algo1_demo {
+namespace ripple_demo {
 
 /// In-memory stand-in for the project's data model.
 class UserModel {
@@ -21,6 +21,6 @@ private:
     int visits_;
 };
 
-}  // namespace algo1_demo
+}  // namespace ripple_demo
 
 #endif

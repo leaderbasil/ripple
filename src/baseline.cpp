@@ -2,18 +2,18 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "algo1/baseline.hpp"
+#include "ripple/baseline.hpp"
 
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
 
-#include "algo1/utils.hpp"
+#include "ripple/utils.hpp"
 
 namespace fs = std::filesystem;
 
-namespace algo1 {
+namespace ripple {
 
 // Binary layout (little-endian, version-tagged):
 //   [u32 magic 'A1S2'][u32 version][u32 count]
@@ -144,4 +144,4 @@ void Baseline::assign(BaselineData& target, BaselineData&& source) {
     target = std::move(source);
 }
 
-}  // namespace algo1
+}  // namespace ripple

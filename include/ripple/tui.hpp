@@ -3,9 +3,9 @@
 #include <string>
 #include <vector>
 
-#include "algo1/graph.hpp"
+#include "ripple/graph.hpp"
 
-namespace algo1 {
+namespace ripple {
 namespace tui {
 
 /// Cross-platform single-key read:
@@ -35,10 +35,10 @@ void reset();
 /// one branch per line, like:
 ///
 ///     main.cpp
-///     ├── home.cpp
-///     │   └── user_model.cpp
-///     ├── settings.cpp
-///     └── config.cpp
+///     â”œâ”€â”€ home.cpp
+///     â”‚   â””â”€â”€ user_model.cpp
+///     â”œâ”€â”€ settings.cpp
+///     â””â”€â”€ config.cpp
 ///
 /// `highlight` marks nodes (e.g. affected) with a bullet; `start`
 /// narrows the view to one file's subtree.
@@ -59,4 +59,4 @@ std::string pickFile(const std::vector<std::string>& files,
                      const std::string& title);
 
 }  // namespace tui
-}  // namespace algo1
+}  // namespace ripple

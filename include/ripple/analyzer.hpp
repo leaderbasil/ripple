@@ -5,16 +5,16 @@
 #include <unordered_set>
 #include <vector>
 
-#include "algo1/graph.hpp"
+#include "ripple/graph.hpp"
 
-namespace algo1 {
+namespace ripple {
 
 /// High-level engine: one call per run.
 class Analyzer {
 public:
     struct Options {
         std::string root;         ///< project directory to watch
-        std::string baselinePath; ///< state file (e.g. .algo1/state.json-ish)
+        std::string baselinePath; ///< state file (e.g. .ripple/state.json-ish)
     };
 
     enum class Mode {
@@ -49,4 +49,4 @@ private:
 /// Pretty console output for a Result (compare mode report).
 void printReport(const Analyzer::Result& result);
 
-}  // namespace algo1
+}  // namespace ripple

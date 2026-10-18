@@ -1,6 +1,6 @@
-#include "algo1/app.hpp"
+#include "ripple/app.hpp"
 
 int main(int argc, char** argv) {
-    algo1::App app;
+    ripple::App app;
     return app.run(argc, argv);
 }

@@ -1,4 +1,4 @@
-#include "algo1/analyzer.hpp"
+#include "ripple/analyzer.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -8,13 +8,13 @@
 #include <unordered_set>
 #include <vector>
 
-#include "algo1/baseline.hpp"
-#include "algo1/hashing.hpp"
-#include "algo1/scanner.hpp"
+#include "ripple/baseline.hpp"
+#include "ripple/hashing.hpp"
+#include "ripple/scanner.hpp"
 
 namespace fs = std::filesystem;
 
-namespace algo1 {
+namespace ripple {
 
 namespace {
 
@@ -168,4 +168,4 @@ void printReport(const Analyzer::Result& r) {
     }
 }
 
-}  // namespace algo1
+}  // namespace ripple
