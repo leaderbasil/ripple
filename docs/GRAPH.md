@@ -1,4 +1,4 @@
-# GRAPH.md â€” The dependency graph, visually
+# GRAPH.md - The dependency graph, visually
 
 Same content as [`ALGORITHM.md`](ALGORITHM.md), but drawn.
 The demo project used everywhere below is
@@ -12,7 +12,7 @@ The demo project used everywhere below is
 
 ## The idea, then and now
 
-The **first sketch** (left) already contained the three great ideas â€” a
+The **first sketch** (left) already contained the three great ideas - a
 dependency map, a change detector, and a topological build order. What the
 RIPPLE engine (right) changed is *how* each idea is realized:
 
@@ -30,21 +30,6 @@ lives in the repo itself.
 
 ```mermaid
 graph TD
-    user_model.h --> user_model.cpp
-    user_model.h --> home.cpp
-    user_model.h --> user_model.h2["(user_model.cpp)"]
-    settings.h --> main.cpp
-    settings.h --> settings.cpp
-    config.h --> settings.cpp
-    config.h --> config.cpp
-    home.h --> home.cpp
-    home.h --> main.cpp
-```
-
-Normalized (self-loops removed):
-
-```mermaid
-graph TD
     user_model.h -->|included by| user_model.cpp
     user_model.h -->|included by| home.cpp
     config.h -->|included by| settings.h
@@ -55,59 +40,54 @@ graph TD
     home.h -->|included by| main.cpp
 ```
 
-**Edge reading rule**: `a â”€â–¶ b` means *b `#include`s a* â‡’ *if a changes, b may
+**Edge reading rule**: `a --> b` means *b `#include`s a* => *if a changes, b may
 need a rebuild*. This direction is what `ripple status` uses.
 
 ## ASCII form (same graph)
 
 ```
-  config.h â”€â”€â–¶ settings.h â”€â”€â–¶ main.cpp
-  config.h â”€â”€â–¶ config.cpp
-  config.h â”€â”€â–¶ settings.cpp
-  settings.h â”€â”€â–¶ settings.cpp
-  home.h â”€â”€â–¶ home.cpp
-  home.h â”€â”€â–¶ main.cpp
-  user_model.h â”€â”€â–¶ home.cpp
-  user_model.h â”€â”€â–¶ user_model.cpp
+  config.h  --> settings.h --> main.cpp   (two-hop transitive chain)
+  config.h  --> config.cpp
+  config.h  --> settings.cpp
+  settings.h --> settings.cpp
+  home.h    --> home.cpp
+  home.h    --> main.cpp
+  user_model.h --> home.cpp
+  user_model.h --> user_model.cpp
 ```
 
-Chained dependencies (the long one):
-```
-config.h â”€â”€â–¶ settings.h â”€â”€â–¶ main.cpp
-```
-Two hops: editing `config.h` reaches both `settings.h` (direct) **and**
-`main.cpp` (transitive, through `settings.h`) â€” that is BFS at work.
+The long chain: editing `config.h` reaches both `settings.h` (direct) **and**
+`main.cpp` (transitive, through `settings.h`) - that is BFS at work.
 
 ## What the tool prints
 
-`ripple what-if user_model.h`:
+`ripple what-if samples/demo_app user_model.h`:
 
 ```
 what-if: changing 'user_model.h' requires rebuilding 3 file(s)
 order: user_model.h -> home.cpp -> user_model.cpp
 user_model.h  <= changed
-â”œâ”€â”€ home.cpp *affected*
-â””â”€â”€ user_model.cpp *affected*
+|-- home.cpp *affected*
+`-- user_model.cpp *affected*
 ```
 
 Note `main.cpp` is *not* on this list: `main.cpp` includes `home.h`, not
 `user_model.h`. The graph is honest instead of paranoid.
 
-`ripple what-if user_model.h config.h` (run on `config.h`):
-also `main.cpp` is pulled in via the `config.h â†’ settings.h â†’ main.cpp`
-chain â€” BFS depth 2 â€” and the tree renderer draws it nested:
+`ripple what-if samples/demo_app config.h` - BFS depth 2 - and the tree
+renderer draws it nested:
 
 ```
 config.h  <= changed
-â”œâ”€â”€  config.cpp *affected*
-â”œâ”€â”€  settings.cpp *affected*
-â””â”€â”€  settings.h *affected*
-    â”œâ”€â”€  main.cpp *affected*
-    â””â”€â”€  settings.cpp (shared node â€” shown above)
+|--  config.cpp *affected*
+|--  settings.cpp *affected*
+`--  settings.h *affected*
+     |--  main.cpp *affected*
+     `--  settings.cpp (shared node - shown above)
 ```
 
-* Shared nodes print `(shared node â€” shown above)` instead of a duplicate
-  subtree â€” bounded rendering on DAGs.
+* Shared nodes print `(shared node - shown above)` instead of a duplicate
+  subtree - bounded rendering on DAGs.
 * If two files ever include each other, an explicit cycle warning appears
   and the offending set is listed under `[!] cyclic` in `status` output.
 
@@ -132,13 +112,13 @@ step 3: pop user_model.cpp
 frontier empty -> stop
 ```
 
-Result: `{user_model.h, user_model.cpp, home.cpp}` â€” exactly what the CLI
+Result: `{user_model.h, user_model.cpp, home.cpp}` - exactly what the CLI
 prints.
 
 ## How Kahn orders those 3 files
 
-Edges inside the affected set: `user_model.h â†’ user_model.cpp` and
-`user_model.h â†’ home.cpp`.
+Edges inside the affected set: `user_model.h -> user_model.cpp` and
+`user_model.h -> home.cpp`.
 
 ```
 indegree before:   user_model.h = 0   user_model.cpp = 1   home.cpp = 1
@@ -163,15 +143,14 @@ give me an order".
 The interactive menu (`ripple` with no command) re-runs this machinery under
 arrow keys:
 
-* **â†‘/â†“ (or j/k)** â€” move the selection through the files
-* **Enter** â€” commit the selection
-* **1..4** â€” scan / status / what-if / init
-* **q / Esc** â€” leave
+* **Up/Down (or j/k)** - move the selection through the files
+* **Enter** - commit the selection
+* **1..5** - scan / status / what-if / baseline / how it works
+* **q / Esc** - leave
 
 Colors: nodes on the affected set print in red with a `*affected*` marker,
-the root keeps a `<= changed` badge, hints print dim. Every ANSI escape is
-instantiated once inside a `while(true)` render loop, so the screen always
-reflects the model rather than an old frame.
+the root keeps a `<= changed` badge, hints print dim. Every frame is
+re-rendered from the model, so the screen always reflects reality.
 
 ## Embedding the graph
 
@@ -188,6 +167,6 @@ settings.h               -> main.cpp settings.cpp
 user_model.h             -> home.cpp user_model.cpp
 ```
 
-That block is the literal graph â€” copy it into your README, test fixture,
+That block is the literal graph - copy it into your README, test fixture,
 or meeting notes. Nothing about the demo is special: point `ripple scan` at
 any real codebase and you get its shape in one shot.

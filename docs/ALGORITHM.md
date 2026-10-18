@@ -1,28 +1,28 @@
-# ALGORITHM.md â€” Deep dive into the RIPPLE algorithm
+# ALGORITHM.md - Deep dive into the RIPPLE algorithm
 
 **RIPPLE** is the designed name of this engine: an edited file is a stone
 dropped in water, and only the files *connected to it* feel the wave.
-Five stages: **S**can â†’ **F**ingerprint â†’ **R**ipple (BFS) â†’ **O**rder (Kahn)
-â†’ **S**ave (atomic baseline). Below is why each stage is that algorithm
+Five stages: **S**can -> **F**ingerprint -> **R**ipple (BFS) -> **O**rder (Kahn)
+-> **S**ave (atomic baseline). Below is why each stage is that algorithm
 and nothing simpler.
 
-This document explains every stage of the Ripple pipeline: what runs, why it
+This document explains every stage of the pipeline: what runs, why it
 is correct, and what it costs. The sibling document
 [`GRAPH.md`](GRAPH.md) is the visual/walkthrough version.
 
 ## Problem statement
 
-Given a source tree `T` and a user edit to one file `u âˆˆ T`, compute:
+Given a source tree `T` and a user edit to one file `u in T`, compute:
 
-1. `changed` â€” the set of files whose *bytes* differ from the last run,
-2. `affected` â€” the smallest set of files that must be rebuilt,
-3. `order` â€” a total order on `affected` in which dependencies build before
+1. `changed` - the set of files whose *bytes* differ from the last run,
+2. `affected` - the smallest set of files that must be rebuilt,
+3. `order` - a total order on `affected` in which dependencies build before
    dependents.
 
 Everything runs in **one process** per invocation, no compiler is launched,
 and the state is small enough to live next to the sources.
 
-## Stage 1 â€” Dynamic discovery (`SourceScanner::scan`)
+## Stage 1 - Dynamic discovery (`SourceScanner::scan`)
 
 ```
 for each regular file under root (recursively):
@@ -33,7 +33,7 @@ sort the relative paths
 ```
 
 *Cost*: O(tree size). Output is sorted so every later stage sees a stable,
-reproducible stream â€” this is what makes byte-diffs and deterministic Kahn
+reproducible stream - this is what makes byte-diffs and deterministic Kahn
 tie-breaking possible.
 
 Then, per file, every line is checked against a tiny parser for quoted
@@ -45,7 +45,7 @@ optional whitespace '#include' whitespace? '"' <target> '"'
 
 * System includes `<...>` are ignored (they are not project files).
 * Self-includes are ignored (a file cannot be its own dependency).
-* Case folding is byte-wise ASCII (`tolower` on `unsigned char`) â€” correct
+* Case folding is byte-wise ASCII (`tolower` on `unsigned char`) - correct
   for source file names on case-insensitive filesystems, no locale surprises.
 * Bare names (`"user_model.h"`) resolve as if relative to any scanned file;
   qualified names (`"sub/thing.h"`) resolve relative to the root.
@@ -54,9 +54,9 @@ optional whitespace '#include' whitespace? '"' <target> '"'
 
 **Key property**: nothing about the project is baked into the binary. Every
 run re-derives the graph from disk. Add a file, delete a file, rewire a
-header â€” the next run simply agrees with reality.
+header - the next run simply agrees with reality.
 
-## Stage 2 â€” The graph (`DependencyGraph`)
+## Stage 2 - The graph (`DependencyGraph`)
 
 Edges are stored **both directions** (each O(1) appends, deduplicated):
 
@@ -74,7 +74,7 @@ Isolated files (a `.cpp` nobody includes and that includes nothing local)
 are registered as orphan nodes, so they stay visible in reports and in the
 baseline rather than silently vanishing.
 
-## Stage 3 â€” Change detection (`Analyzer::run`)
+## Stage 3 - Change detection (`Analyzer::run`)
 
 For every file, in scan order:
 
@@ -86,9 +86,9 @@ else                -> stream-hash the bytes (FNV-1a 64-bit, 64 KiB chunks)
 
 Diff against the persisted baseline:
 
-* `changed` â€” in baseline, in tree, hash differs
-* `added` â€” in tree, not in baseline
-* `removed` â€” in baseline, not in tree
+* `changed` - in baseline, in tree, hash differs
+* `added` - in tree, not in baseline
+* `removed` - in baseline, not in tree
 
 The identity function is **content**, not timestamps: `mtime+size` only acts
 as a cheap pre-filter. A file that keeps the same mtime and size but changes
@@ -98,7 +98,7 @@ sloppier "trust anyone who touches the timestamp".
 
 `FNV-1a 64-bit` is chosen deliberately:
 
-* one pass over the input, ~1 GB/s â€” no openssl, no CRC table, no architecture
+* one pass over the input, ~1 GB/s - no openssl, no CRC table, no architecture
   dependencies,
 * deterministic across runs, machines and processes, so the baseline binary
   remains valid forever,
@@ -107,7 +107,7 @@ sloppier "trust anyone who touches the timestamp".
   the mtime/size drift that accompanies real edits makes a false negative
   require an adversary.
 
-## Stage 4 â€” Impact (`affectedBy`)
+## Stage 4 - Impact (`affectedBy`) - the actual RIPPLE
 
 ```
 work = changed (dedup, only nodes present in the graph)
@@ -116,7 +116,7 @@ while work not empty:
     for d in dependents_[n]: if d unseen -> mark + push
 ```
 
-Depth-first with a visited set. **Cost**: O(V + E) â€” every node and edge is
+Depth-first with a visited set. **Cost**: O(V + E) - every node and edge is
 considered at most once. The result contains the changed files themselves
 plus everything transitively downstream of them.
 
@@ -125,7 +125,7 @@ re-reading `a`'s declarations; transitively, every file reachable from a
 changed file over `dependents` edges is exactly the classic "recompile if the
 text you include was touched" rule.
 
-## Stage 5 â€” Order (`buildOrder`) â€” Kahn's algorithm
+## Stage 5 - Order (`buildOrder`) - Kahn's algorithm
 
 ```
 indegree[n] = |dependencies within affected|
@@ -133,13 +133,13 @@ ready  = min-heap of nodes with indegree == 0 (key = file name)
 while ready not empty:
     n = pop smallest
     emit n
-    for d in dependents_[n] âˆ© affected:
+    for d in dependents_[n] within affected:
         --indegree[d]; when 0, push d
 leftover = nodes never emitted
 ```
 
 Why Kahn's and not DFS topological sort: the emitted prefix here is
-**maximal and usable even when cycles exist** â€” DFS sort gives no such
+**maximal and usable even when cycles exist** - DFS sort gives no such
 guarantee. Anything stuck in a cycle is reported in `cyclic` with a warning
 instead of inventing an order that links a broken artifact.
 
@@ -148,9 +148,9 @@ byte-identical output (CI diffable, tests snapshotable).
 
 *Cost*: O(V log V + E) with the heap; O(V + E) in decisions.
 
-## Stage 6 â€” Persistence (`Baseline::save`)
+## Stage 6 - Persistence (`Baseline::save`)
 
-After every run the current `file â†’ (hash, mtime, size)` table is written to
+After every run the current `file -> (hash, mtime, size)` table is written to
 a version-tagged binary next to the sources, using **write-tmp-then-rename**.
 An interrupted write leaves the previous file untouched; a corrupted or
 ancient file is detected by magic/version bytes and treated as a fresh
@@ -168,7 +168,7 @@ baseline rather than a lie.
 | baseline save | O(V) | atomic rename |
 
 For a warm run over a 10 000-file tree with 3 edited headers: 9 998 stats + 3
-hashes + graph math â€” dominated by the OS, not this tool. That is exactly the
+hashes + graph math - dominated by the OS, not this tool. That is exactly the
 "speed up every run based on what the user edited" goal.
 
 ## What it deliberately does not do

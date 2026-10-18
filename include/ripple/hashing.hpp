@@ -6,7 +6,7 @@
 
 namespace ripple {
 
-/// FNV-1a 64-bit â€” single pass, excellent distribution, ~1 GB/s.
+/// FNV-1a 64-bit - single pass, excellent distribution, ~1 GB/s.
 std::uint64_t fnv1a64(std::string_view data);
 
 /// Streams the file from disk and hashes its bytes.

@@ -41,8 +41,8 @@ void enableVirtualTerminal() {
     if (h != INVALID_HANDLE_VALUE && GetConsoleMode(h, &mode)) {
         gVtEnabled = SetConsoleMode(h, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
     }
-    // Box-drawing text ("â”œâ”€â”€") arrives as UTF-8 bytes; without this
-    // codepage the classic conhost prints mojibake like "Î“Ã‡Ã¶".
+    // Box-drawing text arrives as UTF-8 bytes; without this codepage the
+    // classic conhost prints mojibake instead of the intended glyphs.
     SetConsoleOutputCP(65001);
 #endif
 }
@@ -170,7 +170,7 @@ std::string readKey() {
 namespace {
 
 // Depth first recursive printing with cycle guards; also highlights nodes.
-// Direction: dependents â€” "who must rebuild transitively because of this node".
+      // Direction: dependents - "who must rebuild transitively because of this node".
 void printBranch(const DependencyGraph& graph,
                  const std::string& node,
                  const std::string& prefix,
@@ -195,20 +195,20 @@ void printBranch(const DependencyGraph& graph,
         if (highlight.count(child)) {
             ansi::red();
             std::printf("%s%s %s *affected*\n", prefix.c_str(),
-                        last ? "â””â”€â”€ " : "â”œâ”€â”€ ", child.c_str());
+                        last ? "`-- " : "|-- ", child.c_str());
             ansi::reset();
         } else {
-            std::printf("%s%s %s\n", prefix.c_str(), last ? "â””â”€â”€ " : "â”œâ”€â”€ ",
+            std::printf("%s%s %s\n", prefix.c_str(), last ? "`-- " : "|-- ",
                         child.c_str());
         }
 
         if (path.insert(child).second) {
-            const std::string deeper = prefix + (last ? "    " : "â”‚   ");
+            const std::string deeper = prefix + (last ? "    " : "|   ");
             printBranch(graph, child, deeper, path, highlight, depth + 1, maxDepth);
         } else {
             ansi::yellow();
-            std::printf("%s%s (shared node â€” shown above)\n", prefix.c_str(),
-                        last ? "    " : "â”‚   ");
+            std::printf("%s%s (shared node - shown above)\n", prefix.c_str(),
+                        last ? "    " : "|   ");
             ansi::reset();
         }
     }

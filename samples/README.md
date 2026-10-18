@@ -1,12 +1,12 @@
-# demo_app â€” the packaged example
+# demo_app - the packaged example
 
 A deliberately tiny 9-file project with the dependency shapes that make an
 incremental builder interesting:
 
 ```
-config.h â”€â”€â–¶ settings.h â”€â”€â–¶ main.cpp        (two-hop transitive chain)
-user_model.h â”€â”€â–¶ home.cpp, user_model.cpp   (shared leaf dependency)
-home.h â”€â”€â–¶ home.cpp, main.cpp               (header used only by includers)
+config.h --- settings.h --- main.cpp        (two-hop transitive chain)
+user_model.h --- home.cpp, user_model.cpp   (shared leaf dependency)
+home.h --- home.cpp, main.cpp               (header used only by includers)
 ```
 
 Try it:

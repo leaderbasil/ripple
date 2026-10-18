@@ -207,7 +207,7 @@ int App::cmdMenu(Options& opt) {
     for (;;) {
         clearScreen();
 
-        std::printf("  R I P P L E   Â·   incremental build impact\n");
+        std::printf("  R I P P L E   -   incremental build impact\n");
         std::printf("  root: %s\n", opt.root.c_str());
         std::printf("  -------------------------------------------\n");
         std::printf("  [1|s] scan       what the graph looks like\n");
