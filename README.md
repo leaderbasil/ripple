@@ -24,6 +24,23 @@ scanned 9 file(s), graph edges 9
    3. user_model.cpp
 ```
 
+<p align="center">
+  <img src="docs/images/then-original-idea.svg" width="400" alt="The original idea: manual dependencies, LAST_EDIT, affected files, partial topological order" />
+  &nbsp;&nbsp;
+  <img src="docs/images/now-ripple-engine.svg" width="400" alt="Now: the RIPPLE engine with its 5 stages" />
+</p>
+
+| | **then** (the original sketch) | **now** (the RIPPLE engine) |
+|---|---|---|
+| dependencies | hand-written `addDependency()` calls | auto-scanned from `#include "..."` — zero config |
+| change detection | `LAST_EDIT` timestamp only | FNV-1a 64-bit of the **bytes** + mtime/size shortcut |
+| new / renamed files | broke the map | picked up on the next run |
+| affected set | whole reachable closure | same, O(V + E), minimal |
+| build order | printed, unordered inside groups | deterministic Kahn order (alphabetical ties) |
+| dependency cycles | silent / hung | detected and reported |
+| state between runs | plain text, overwrite-in-place | version-tagged binary, atomic `tmp` + `rename` |
+| interactivity | none | live TUI: arrow-key picker + what-if simulation |
+
 ---
 
 ## Why

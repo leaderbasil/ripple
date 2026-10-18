@@ -4,6 +4,28 @@ Same content as [`ALGORITHM.md`](ALGORITHM.md), but drawn.
 The demo project used everywhere below is
 [`samples/demo_app`](../samples/demo_app).
 
+<p align="center">
+  <img src="images/then-original-idea.svg" width="360" alt="then: the original manual sketch" />
+  &nbsp;
+  <img src="images/now-ripple-engine.svg" width="360" alt="now: the RIPPLE engine" />
+</p>
+
+## The idea, then and now
+
+The **first sketch** (left) already contained the three great ideas — a
+dependency map, a change detector, and a topological build order. What the
+RIPPLE engine (right) changed is *how* each idea is realized:
+
+| idea | then | now |
+|------|------|-----|
+| dependency map | typed by hand, per project | derived from `#include` at every run |
+| change detector | `LAST_EDIT` file timestamps | content hash (FNV-1a 64-bit) with mtime/size pre-filter |
+| affected files | queue over hand-built edges | BFS over scanned edges |
+| build order | partial, unordered ties | deterministic Kahn ordering + cycle warning |
+
+The two SVGs above are versioned next to this document, so the comparison
+lives in the repo itself.
+
 ## The project as Mermaid
 
 ```mermaid
