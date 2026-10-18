@@ -35,11 +35,61 @@ void showWhatIf(const DependencyGraph& graph, const std::string& file) {
     tui::renderTree(graph, file, graph.affectedBy({file}), false);
 }
 
+void clearScreen() {
+    tui::ansi::clear();
+    tui::ansi::moveHome();
+}
+
+void pauseForReturn() {
+    std::printf("\n[enter to return, q to quit] ");
+    std::fflush(stdout);
+    if (tui::readKey() == "q") std::exit(0);
+}
+
+/// The in-app explanation screen: the five RIPPLE stages, with concrete
+/// output so the reader sees each stage do its job.
+void cmdHowItWorks() {
+    clearScreen();
+    std::printf(
+        "THE RIPPLE ALGORITHM - 5 stages\n"
+        "===============================\n"
+        "Metaphor: an edited file is a stone dropped in water;\n"
+        "only the files it is CONNECTED to feel the wave.\n\n"
+        " 1. SCAN        walk the folder, read every  #include \"...\"\n"
+        "                and turn them into graph edges.\n"
+        "                new/renamed/deleted files are picked up here,\n"
+        "                a zero-config rebuild map.\n\n"
+        " 2. FINGERPRINT hash every file's bytes (FNV-1a 64-bit) and\n"
+        "                compare with the previous run's baseline.\n"
+        "                mtime+size unchanged -> skip the read,\n"
+        "                truly edited files -> marked as changed.\n\n"
+        " 3. RIPPLE      BFS outwards from the changed files along\n"
+        "                \"who includes me\" edges = the exact minimal\n"
+        "                set that MUST be rebuilt. Everyone else:\n"
+        "                untouched, not recompiled, not re-read.\n\n"
+        " 4. ORDER       Kahn's topological sort on that set:\n"
+        "                files nothing depends on build first,\n"
+        "                their dependents follow.\n"
+        "                cycles are reported instead of hanging.\n\n"
+        " 5. SAVE        the new map+hashes are written back\n"
+        "                atomically, so the next run starts warmer.\n\n"
+        "GOAL: edit 1 file out of 10 000 -> this engine touches ~3 stat\n"
+        "       calls, 1 hash and a few hundred graph edges,\n"
+        "       instead of recompiling 10 000 files.\n\n"
+        "Example (demo_app, editing user_model.h):\n"
+        "   changed:  user_model.h\n"
+        "   affected: home.cpp, user_model.cpp   (main.cpp NOT affected:\n"
+        "              it does not include user_model.h)\n"
+        "   order:    user_model.h -> home.cpp -> user_model.cpp\n"
+        "   speedup:  9 files kept, only 2 recompiled = ~78%% of the work saved\n\n");
+    pauseForReturn();
+}
+
 }  // namespace
 
 int App::printUsage() {
     std::printf(
-        "algo1 — incremental build impact analyzer\n"
+        "algo1 - the RIPPLE engine (incremental build impact analyzer)\n"
         "\n"
         "usage:\n"
         "  algo1                          interactive menu (default dir '.')\n"
@@ -91,7 +141,7 @@ int App::cmdStatus(Options& opt) {
     opt.baseline = baselinePath.string();
 
     if (!fs::exists(baselinePath)) {
-        std::printf("no baseline yet under '%s' — run: algo1 init %s\n",
+        std::printf("no baseline yet under '%s' - run: algo1 init %s\n",
                     opt.root.c_str(), opt.root.c_str());
         return 2;
     }
@@ -101,7 +151,7 @@ int App::cmdStatus(Options& opt) {
     printReport(result);
 
     if (result.changed.empty() && result.affected.empty()) {
-        std::printf("\nNothing to rebuild — up to date.\n");
+        std::printf("\nNothing to rebuild - up to date.\n");
         return 0;
     }
     return 0;
@@ -134,7 +184,7 @@ int App::cmdWhatIf(const Options& opt, std::string file) {
 
     if (file.empty()) {
         auto files = listFiles(scanner);
-        file = tui::pickFile(files, "what-if — pick a file to edit (simulation)");
+        file = tui::pickFile(files, "what-if - pick a file to edit (simulation)");
         if (file.empty()) {
             std::printf("(cancelled)\n");
             return 0;
@@ -155,55 +205,52 @@ int App::cmdMenu(Options& opt) {
 
     const SourceScanner scanner(opt.root);
     for (;;) {
-        tui::ansi::clear();
-        tui::ansi::moveHome();
+        clearScreen();
 
-        std::printf("Algo1  —  root: %s\n", opt.root.c_str());
-        std::printf("--------------------------------\n");
-        std::printf(" [1] scan       discovery + edge overview\n");
-        std::printf(" [2] status     diff vs baseline\n");
-        std::printf(" [3] what-if    edit one file (simulated)\n");
-        std::printf(" [4] init       recapture baseline\n");
-        std::printf(" [q] quit\n");
-        std::printf("> ");
+        std::printf("  R I P P L E   ·   incremental build impact\n");
+        std::printf("  root: %s\n", opt.root.c_str());
+        std::printf("  -------------------------------------------\n");
+        std::printf("  [1|s] scan       what the graph looks like\n");
+        std::printf("  [2|d] status     what changed + minimal rebuild plan\n");
+        std::printf("  [3|w] what-if    pick a file, simulate the edit\n");
+        std::printf("  [4|b] baseline   recapture (.algo1/baseline.bin)\n");
+        std::printf("  [5|h] how it works   the RIPPLE algorithm, 5 stages\n");
+        std::printf("  [q|esc] quit\n");
+        std::printf("  > ");
         std::fflush(stdout);
 
         const std::string key = tui::readKey();
         if (key == "q" || key == "esc") return 0;
 
-        if (key == "1") {
-            tui::ansi::clear();
-            tui::ansi::moveHome();
-            cmdScan(opt);
-            std::printf("\n[press enter to return] ");
-            std::fflush(stdout);
-            tui::readKey();
-        } else if (key == "2") {
-            tui::ansi::clear();
-            tui::ansi::moveHome();
-            cmdStatus(opt);
-            std::printf("\n[press enter to return] ");
-            std::fflush(stdout);
-            tui::readKey();
-        } else if (key == "4") {
-            tui::ansi::clear();
-            tui::ansi::moveHome();
-            cmdInit(opt);
-            std::printf("\n[press enter to return] ");
-            std::fflush(stdout);
-            tui::readKey();
-        } else if (key == "3") {
+        const bool isScan = (key == "1" || key == "s");
+        const bool isStatus = (key == "2" || key == "d");
+        const bool isBaseline = (key == "4" || key == "b");
+        const bool isAbout = (key == "5" || key == "h");
+
+        if (isAbout) {
+            cmdHowItWorks();
+            continue;
+        }
+
+        if (isScan || isStatus || isBaseline) {
+            clearScreen();
+            if (isScan) {
+                cmdScan(opt);
+            } else if (isStatus) {
+                cmdStatus(opt);
+            } else {
+                cmdInit(opt);
+            }
+            pauseForReturn();
+        } else if (key == "3" || key == "w") {
             auto files = listFiles(scanner);
             const std::string pick =
-                tui::pickFile(files, "what-if — pick a file to edit (simulation)");
+                tui::pickFile(files, "what-if - pick a file to edit (simulation)");
             if (!pick.empty()) {
-                tui::ansi::clear();
-                tui::ansi::moveHome();
+                clearScreen();
                 const auto scanNow = scanner.scan();
                 showWhatIf(scanNow.graph, pick);
-                std::printf("\n[press enter to return] ");
-                std::fflush(stdout);
-                tui::readKey();
+                pauseForReturn();
             }
         }
     }
@@ -241,7 +288,7 @@ int App::run(int argc, char** argv) {
     if (command == "init") return cmdInit(opt);
     if (command == "what-if") return cmdWhatIf(opt, fileArg);
 
-    std::printf("unknown command '%s' — try 'algo1 help'\n", command.c_str());
+    std::printf("unknown command '%s' - try 'algo1 help'\n", command.c_str());
     return 2;
 }
 

@@ -1,4 +1,10 @@
-# ALGORITHM.md — Deep dive
+# ALGORITHM.md — Deep dive into the RIPPLE algorithm
+
+**RIPPLE** is the designed name of this engine: an edited file is a stone
+dropped in water, and only the files *connected to it* feel the wave.
+Five stages: **S**can → **F**ingerprint → **R**ipple (BFS) → **O**rder (Kahn)
+→ **S**ave (atomic baseline). Below is why each stage is that algorithm
+and nothing simpler.
 
 This document explains every stage of the ALGO 1 pipeline: what runs, why it
 is correct, and what it costs. The sibling document

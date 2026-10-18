@@ -131,7 +131,7 @@ void printReport(const Analyzer::Result& r) {
         return out;
     };
 
-    std::printf("== Algo1 incremental analysis ==\n");
+    std::printf("== RIPPLE incremental analysis ==\n");
     std::printf("scanned %zu file(s), graph edges %zu\n", r.filesScanned, r.edges);
 
     if (!r.added.empty()) {

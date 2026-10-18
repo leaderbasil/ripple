@@ -41,6 +41,9 @@ void enableVirtualTerminal() {
     if (h != INVALID_HANDLE_VALUE && GetConsoleMode(h, &mode)) {
         gVtEnabled = SetConsoleMode(h, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING) != 0;
     }
+    // Box-drawing text ("├──") arrives as UTF-8 bytes; without this
+    // codepage the classic conhost prints mojibake like "ΓÇö".
+    SetConsoleOutputCP(65001);
 #endif
 }
 

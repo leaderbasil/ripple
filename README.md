@@ -2,7 +2,7 @@
 
 <p>
   <b>Change one file → know exactly what to rebuild, in the right order, in milliseconds.</b><br>
-  A dependency-graph engine that turns <i>"I edited a header"</i> into a minimal, ordered rebuild
+  Powered by the <b>RIPPLE</b> algorithm — a dependency-graph engine that turns <i>"I edited a header"</i> into a minimal, ordered rebuild
   plan — the same way industrial build systems (Ninja, Bazel, MSBuild) stay fast.
 </p>
 
@@ -40,6 +40,22 @@ every incremental builder must answer:
 
 With 500 files where 2 headers changed, the plan touches ~10 files, not 500.
 That is the entire point: **speed up every run based on what the user edited**.
+
+## The RIPPLE algorithm — the designed name
+
+An edited file is a **stone dropped into water**; only the files it is
+*connected to* feel the wave. Five named stages:
+
+| # | stage | classic algorithm inside |
+|---|-------------|------------------------------|
+| 1 | **SCAN** — walk the folder, turn `#include "..."` into graph edges | directory walk + include parser |
+| 2 | **FINGERPRINT** — hash bytes, compare with the last run | FNV-1a 64-bit + mtime/size filter |
+| 3 | **RIPPLE** — spread out along "who includes me" edges | BFS (breadth-first search) |
+| 4 | **ORDER** — dependency-first build sequence | Kahn's topological sort |
+| 5 | **SAVE** — atomically persist the new baseline | write-tmp + rename |
+
+The app ships with `(5|h) how it works` in the interactive menu — the same
+table, live.
 
 ## Features
 
